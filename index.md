@@ -23,6 +23,8 @@ Aide-mémoires opérationnels pour le parcours pentest (Red & Blue Team). Une fi
 | 11 | [windows-privesc](windows-privesc.md) | Élévation | 6 | Checklist Windows : jeton, services, tâches |
 | 12 | [gtfobins](gtfobins.md) | Élévation | 6 | Binaires détournables (sudo/SUID/capabilities) |
 | 13 | [hashcat](hashcat.md) | Cassage | 4, 5 | Modes, règles, masques — casse ce qu'on récupère |
+| 14 | [wazuh-sysmon](wazuh-sysmon.md) | Blue Team | 9 | Lab SIEM maison : détecter tes propres attaques (Purple Team) |
+| 15 | [file-transfer](file-transfer.md) | Transverse | 4, 6 | Déposer un outil / exfiltrer : HTTP, SMB, certutil, nc, scp |
 
 ---
 
@@ -30,7 +32,6 @@ Aide-mémoires opérationnels pour le parcours pentest (Red & Blue Team). Une fi
 
 Une note par machine dans `machines/`, à partir du modèle [`machines/_TEMPLATE.md`](machines/_TEMPLATE.md).
 Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponibles, cadre 100 % légal.
-📋 **Roadmap complète (28 machines en 6 phases)** : [`machines/PARCOURS.md`](machines/PARCOURS.md).
 
 ### ✅ Faites
 

