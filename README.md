@@ -1,6 +1,6 @@
 # pentest-notes
 
-Base de connaissances et write-ups de remise à niveau pentest (Red & Blue Team).
+Base de connaissances et write-ups de remise à niveau pentest (offensif — pentester).
 Chaque machine est documentée selon la structure d'un rapport d'audit :
 **reconnaissance → énumération → exploitation → post-exploitation → remédiation → leçons**.
 
@@ -37,9 +37,8 @@ Chaque machine est documentée selon la structure d'un rapport d'audit :
 - **Exploitation** : Metasploit **et** voie manuelle (exigence OSCP), injection de commande, RCE web.
 - **Transfert de fichiers** : HTTP, SMB, certutil, netcat (déposer un outil, exfiltrer une preuve).
 - **Élévation de privilèges** : checklists Linux (sudo, SUID, **capabilities**, cron) et Windows (jeton, services, tâches, **noyau**) ; lecture méthodique de winPEAS/linPEAS.
-- **Post-exploitation** : obtention SYSTEM/root, psexec/Impacket, reverse shells.
-- **Blue Team** : lab SIEM maison (Wazuh + Sysmon) pour détecter ses propres attaques (Purple Team).
-- **Active Directory** *(à venir)* : BloodHound, Kerberoasting/AS-REP, DCSync, Impacket.
+- **Post-exploitation & pivoting** : obtention SYSTEM/root, psexec/Impacket, reverse shells, tunnels (chisel/ligolo-ng).
+- **Active Directory** : BloodHound, Kerberoasting/AS-REP, DCSync, délégations (RBCD), Impacket.
 
 ---
 
@@ -50,7 +49,7 @@ pentest-notes/
 ├── README.md              # ce fichier
 ├── index.md               # index des cheatsheets (par phase + chaînes de lecture)
 ├── machines/              # un write-up par machine
-│   ├── _TEMPLATE.md        # modèle (recon → foothold → énum → privesc → Blue Team → leçons)
+│   ├── _TEMPLATE.md        # modèle (recon → foothold → énum → privesc → leçons)
 │   ├── PARCOURS.md         # roadmap : machines HTB dans l'ordre de montée en compétence
 │   ├── Lame.md  Blue.md  Legacy.md  Netmon.md
 │   ├── Shocker.md  Optimum.md
@@ -60,8 +59,7 @@ pentest-notes/
     ├── searchsploit.md  metasploit.md  reverse-shells.md  impacket.md
     ├── bloodhound.md  ad-attacks.md
     ├── linux-privesc.md  windows-privesc.md  gtfobins.md  lire-peas.md
-    ├── hashcat.md  file-transfer.md
-    └── wazuh-sysmon.md
+    └── hashcat.md  file-transfer.md
 ```
 
 ---
@@ -70,8 +68,7 @@ pentest-notes/
 
 Remise à niveau pentest structurée en modules (fondamentaux réseau, reconnaissance,
 web, exploitation système, Active Directory, élévation de privilèges, post-exploitation,
-reporting, Blue Team, systèmes industriels/OT). Objectif : opérationnel en mission et
-en pilotage d'équipe pentest.
+reporting, pivoting, systèmes industriels/OT). Objectif : opérationnel en mission de pentest.
 
 Les tests sont réalisés **exclusivement** sur des environnements autorisés (labs
 personnels et plateformes légales). Hors cadre contractuel, un test d'intrusion est

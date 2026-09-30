@@ -55,7 +55,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | 5 | **Sauna** | Windows | Easy | AS-REP → creds autologon → DCSync | Consolider l'AD (2e chaîne complète) |
 | 6 | **GOAD** (lab local) | Windows | — | Multi-machines, mouvement latéral | Livrable module 5 : compromission d'un lab AD de A à Z |
 
-> **Règle de progression** : sur chaque machine, dérouler la **checklist privesc AVANT d'exploiter**, chronométrer, et pour chaque étape savoir dire *pourquoi ça marche* + *comment on le détecte* (section Blue Team du template).
+> **Règle de progression** : sur chaque machine, dérouler la **checklist privesc AVANT d'exploiter**, chronométrer, et pour chaque étape savoir dire *pourquoi ça marche* (mécanisme + remédiation, pour le rapport).
 
 En parallèle (module 3) : finir les labs **PortSwigger Apprentice**, puis la moitié des **Practitioner**.
 
@@ -85,28 +85,14 @@ nmap → burp  (avec sqlmap/ffuf en complément à venir)
 
 ---
 
-## Le fil défensif (Blue Team)
-
-Chaque fiche a une section « côté défense / détection » — c'est ce qui fait la valeur du profil Red **+** Blue. À terme, un tableau de synthèse **attaque → trace → détection → remédiation** (livrable du module 9) agrégera :
-
-| Attaque | Fiche | Trace clé |
-| --- | --- | --- |
-| Kerberoasting | ad-attacks / impacket | Event 4769 (RC4) |
-| AS-REP roasting | ad-attacks / impacket | Event 4768 sans pré-auth |
-| Password spraying | smb / ad-attacks | 4625 en rafale |
-| Pass-the-Hash | smb / impacket | 4624 type 3 (NTLM) |
-| DCSync | ad-attacks / impacket | 4662 depuis un non-DC |
-| psexec | smb / impacket | Event 7045 |
-| Reverse shell | reverse-shells | Interpréteur → connexion sortante (T1059) |
-
----
-
 ## À compléter (pistes)
 
 - **sqlmap.md** / **ffuf.md** — automatisation web (module 3)
 - **john.md** — extraction de hashes (`*2john`) en complément de hashcat
 - **wireshark.md** — analyse de trafic (module 1)
-- **mitre-attack.md** — mapping des techniques (modules 7 & 9)
+- **mitre-attack.md** — mapping des techniques (module 7, pour le rapport)
+- **pivoting.md** — tunnels SSH, chisel, ligolo-ng, proxychains (module 9)
+- **kerberoasting.md** / **delegation.md** / **adcs.md** — techniques AD avancées (module 5)
 
 ---
 

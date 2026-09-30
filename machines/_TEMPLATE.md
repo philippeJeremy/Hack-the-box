@@ -125,18 +125,7 @@ id    # ou : whoami  → uid=0(root) / nt authority\system
 
 ---
 
-## 7. Côté Blue Team — détection
-
-| Étape de l'attaque | Trace / Event | Détection |
-| --- | --- | --- |
-| foothold (<...>) | | |
-| privesc (<...>) | | |
-
-> Objectif module 9 : pour chaque attaque que je sais mener, savoir quelle trace elle laisse.
-
----
-
-## 8. Leçons
+## 7. Leçons
 
 - <ce que cette machine apprend de neuf par rapport aux précédentes>
 - <piège rencontré / temps passé / ce que je referais différemment>
