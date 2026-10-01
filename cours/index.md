@@ -39,7 +39,13 @@ Le fil rouge de tout le cursus : **entrer → comprendre → élever ses droits 
 | 9 | [Blue Team / détection](09-blue-team.md) | détecter | wazuh-sysmon | 9 |
 | 10 | [Systèmes industriels / OT](10-ot-ics.md) | contexte indus | (ot-ics à venir) | 10 |
 
-**Complément entreprise/cloud** (parcours 2) : [`rhel-idm`](../outils/rhel-idm.md), [`kubernetes`](../outils/kubernetes.md), [`citrix`](../outils/citrix.md) — à lire après le module 5 (AD), car ils réutilisent Kerberos/l'annuaire.
+**Bloc entreprise / cloud** (parcours 2 — à lire après le module 5, car ils réutilisent Kerberos/l'annuaire) :
+
+| # | Module | Étape de la chaîne | Fiches liées | Phase parcours |
+| --- | --- | --- | --- | --- |
+| 11 | [Linux entreprise / RHEL & FreeIPA](11-rhel-idm.md) | comprendre / élever | rhel-idm | 7 |
+| 12 | [Conteneurs & Kubernetes](12-kubernetes.md) | entrer / se propager | kubernetes | 8 |
+| 13 | [Citrix / accès distant](13-citrix.md) | entrer | citrix, windows-privesc | 9 |
 
 ---
 

