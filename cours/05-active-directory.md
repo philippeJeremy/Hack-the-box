@@ -12,6 +12,48 @@ Comprendre **comment un domaine Windows fonctionne et où il fait confiance à t
 
 **Ce qu'est AD.** Un annuaire centralisé : utilisateurs, machines, groupes, politiques, tous gérés par des **contrôleurs de domaine (DC)**. Se connecter quelque part = demander à l'annuaire « qui es-tu et as-tu le droit ? ». Cette centralisation est sa force *et* sa surface d'attaque : compromettre le DC = compromettre tout.
 
+**Qui est qui : lire la structure.** Avant d'attaquer, il faut reconstituer la hiérarchie. Le vocabulaire, du plus grand au plus petit :
+
+| Terme | Ce que c'est | Piège à éviter |
+| --- | --- | --- |
+| **Forêt** | Le conteneur le plus large : une ou plusieurs arborescences de domaines, schéma commun, racine de confiance. **La vraie frontière de sécurité.** | Une forêt ≠ un domaine : elle peut en contenir plusieurs. |
+| **Domaine** | Une zone de nommage et d'administration (ex. `sevenkingdoms.local`). Objet **logique**, finit par un suffixe DNS. | Le domaine n'est pas la machine qui l'héberge. |
+| **Domaine enfant** | Sous-domaine qui prolonge le nom du parent (ex. `north.sevenkingdoms.local`), relié par une approbation automatique. | Parent et enfant sont dans la **même forêt**, ce n'est pas un domaine étranger. |
+| **Contrôleur de domaine (DC)** | La **machine** qui héberge l'annuaire et traite l'auth (Kerberos 88, LDAP 389). | Le DC est le serveur ; le domaine est l'annuaire qu'il porte. |
+| **Machine membre** | Serveur/poste **joint** au domaine, mais pas DC : il applique les règles sans héberger l'annuaire. | Une machine membre ne répond pas aux requêtes d'annuaire du domaine. |
+
+**La règle anti-confusion :** un **nom de domaine** finit par un suffixe DNS (`sevenkingdoms.local`) ; un **nom de machine** est un hostname court, souvent en majuscules (`KINGSLANDING`). Devant un hostname, une seule question : **DC ou simple membre ?**
+
+Exemple (lab GOAD) :
+
+```
+Forêt sevenkingdoms.local
+│
+├── Domaine parent : sevenkingdoms.local
+│     └── DC : KINGSLANDING (192.168.56.10)
+│
+└── Domaine enfant : north.sevenkingdoms.local
+      ├── DC : WINTERFELL   (192.168.56.11)
+      └── Membre : CASTELBLACK (192.168.56.22)
+```
+
+`sevenkingdoms.local` est le domaine, `KINGSLANDING` est sa machine (son DC). `north` est l'enfant du domaine `sevenkingdoms`, dans la même forêt. `WINTERFELL` est le DC de `north` ; `CASTELBLACK` est une simple machine membre.
+
+**Déduire tout ça d'une sortie `nxc smb <plage>` :**
+
+| Indice dans la sortie | Lecture |
+| --- | --- |
+| `domain:` change d'une ligne à l'autre | Plusieurs domaines → au moins autant de DC |
+| Même `domain:` sur deux machines | Même domaine (reste à trouver le DC) |
+| `signing:True` | Défaut d'un **DC** : bon indice de contrôleur |
+| `signing:False` | Défaut d'une **machine membre** |
+| `Null Auth:True` | Session nulle acceptée (porte anonyme, fréquente sur DC) |
+| Port **88** (Kerberos) ouvert | Signature quasi certaine d'un **DC** |
+
+`signing` est un **indice**, pas une preuve : on confirme qui est DC avec le port 88 et un scan LDAP. En pratique, DC = `signing:True` + Kerberos, membre = `signing:False`.
+
+**Les groupes clés :** **Domain Admins** = clé d'un domaine ; **Enterprise Admins** = clé de toute la **forêt**.
+
 **Kerberos, le cœur.** Le protocole d'authentification. Modèle mental (billets de spectacle) :
 - Tu prouves ton identité une fois → tu reçois un **TGT** (ticket d'entrée, « le bracelet »).
 - Pour accéder à un service, tu présentes le TGT → tu reçois un **TGS** (ticket pour *ce* service, « le billet du concert »).

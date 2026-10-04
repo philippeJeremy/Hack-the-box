@@ -347,19 +347,7 @@ net rpc user delete hacker -U "$D/$U%$P" -S $DC
 
 ---
 
-## 7. Côté Blue Team — détection
-
-| Étape | Trace / Event | Détection |
-| --- | --- | --- |
-| Énum. anonyme | connexions SMB/LDAP anonymes, requêtes en masse | alerte sur session nulle, pic d'énumération |
-| AS-REP roast | **4768** (TGT demandé) pour un compte sans pré-auth, chiffrement RC4 | règle Sigma AS-REP |
-| BloodHound | requêtes LDAP massives (SharpHound) | volume LDAP anormal depuis un compte |
-| Abus d'ACL | **5136** (modification d'objet AD / DACL) | alerte sur modification d'ACL du domaine |
-| DCSync | **4662** réplication depuis un hôte **non-DC** | la détection reine de l'AD |
-
----
-
-## 8. Leçons
+## 7. Leçons
 
 - **On attaque un DOMAINE, pas une machine.** Le foothold (`svc-alfresco`) n'est qu'une porte d'entrée ; l'objectif est le **contrôle du domaine** (DA / DCSync), atteint par des **abus de configuration**, pas des CVE.
 - **La chaîne AD type** : énumérer (session nulle) → **roaster** (AS-REP) → **cartographier** (BloodHound) → **abuser une ACL** (WriteDacl) → **DCSync** → PtH. C'est le squelette réutilisable sur toute box AD.

