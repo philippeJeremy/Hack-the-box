@@ -85,6 +85,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | Machine | OS | Diff. | Vecteur | Ce que ça a musclé |
 | --- | --- | --- | --- | --- |
 | [Builder](machines/Builder.md) | Linux | 🟡 Medium | Jenkins **CVE-2024-23897** (file read) → bcrypt → Script Console → clé SSH root | CVE web + secrets Jenkins |
+| [Codify](machines/Codify.md) | Linux | 🟢 Easy | Évasion sandbox **vm2** → SQLite/bcrypt → script sudo (**bash glob**) → root | Sandbox escape + glob leak |
 
 **Lab local**
 
@@ -92,13 +93,12 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | --- | --- | --- | --- |
 | [GOAD](machines/GOAD.md) | Windows (multi) | Lab AD multi-machines, mouvement latéral | Compromission d'un lab AD de A à Z (module 5) |
 
-> **Décompte candidature : ~19 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
+> **Décompte candidature : ~20 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
 
 ### 🎯 À faire (skeletons prêts — je cherche les commandes seul)
 
 | Machine | OS | Diff. | Vecteur attendu | Ce que ça va muscler |
 | --- | --- | --- | --- | --- |
-| [Codify](machines/Codify.md) | Linux | 🟢 Easy | Évasion de sandbox **vm2** (Node.js) → sudo script | Sandbox escape + script sudo |
 | [Usage](machines/Usage.md) | Linux | 🟢 Easy | SQLi (Laravel) → upload → wildcard **7z** | SQLi + wildcard injection |
 | [GreenHorn](machines/GreenHorn.md) | Linux | 🟢 Easy | Git leak (Gitea) → RCE CMS → **depix** | Fuite de source + depix |
 
