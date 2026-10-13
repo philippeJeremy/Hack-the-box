@@ -307,7 +307,32 @@ Get-ChildItem Env:
 
 ---
 
-## 13. À savoir expliquer à l'oral
+## 13. Se connecter avec une clé SSH récupérée
+
+Quand on trouve une **clé privée** (`id_rsa`, `id_ed25519`, `*.pem`, un `.ssh/` lisible) :
+```bash
+# 1) la sauver dans un fichier (coller BEGIN -> END, lignes dans l'ordre)
+nano id_rsa
+# 2) permissions strictes — OBLIGATOIRE, sinon SSH refuse
+chmod 600 id_rsa
+# 3) se connecter (deviner l'user : nom du dossier .ssh, en-tête de la clé, /etc/passwd)
+ssh -i id_rsa <user>@<IP>
+ssh -i id_rsa -o IdentitiesOnly=yes <user>@<IP>   # force CETTE clé (ignore l'agent)
+```
+
+| Erreur | Cause → fix |
+| --- | --- |
+| `UNPROTECTED PRIVATE KEY` / `Permissions 0644 are too open` | clé trop permissive → `chmod 600` |
+| `Enter passphrase for key` | clé protégée → `ssh2john id_rsa > h ; john --wordlist=rockyou.txt h` |
+| `invalid format` / `error in libcrypto` | copier-coller cassé (lignes mélangées / `BEGIN`-`END` manquants) → récupérer en base64 : `base64 -w0 id_rsa` côté cible, `base64 -d` chez soi |
+| `Permission denied (publickey)` | mauvais user, ou la **clé publique** n'est pas dans `~/.ssh/authorized_keys` de la cible |
+
+> **Persistance** (après un root) : ajouter SA propre clé publique dans `/root/.ssh/authorized_keys` pour garder l'accès.
+> **Exfiltrer une clé** depuis un shell bancal : `base64 -w0 ~/.ssh/id_rsa` → copier → décoder localement (évite les soucis de retours ligne), ou `python3 -m http.server` côté cible + `wget` côté attaquant.
+
+---
+
+## 14. À savoir expliquer à l'oral
 
 - **`find` vs `locate`** : `find` parcourt le disque en direct (toujours à jour, lent) ; `locate` lit une base d'index (instantané, mais peut rater un fichier récent).
 - **`grep -r` vs `findstr /s` vs `Select-String`** : même idée (chercher un motif dans des fichiers), trois environnements. Savoir basculer sans réfléchir.
