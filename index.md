@@ -87,6 +87,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | [Builder](machines/Builder.md) | Linux | 🟡 Medium | Jenkins **CVE-2024-23897** (file read) → bcrypt → Script Console → clé SSH root | CVE web + secrets Jenkins |
 | [Codify](machines/Codify.md) | Linux | 🟢 Easy | Évasion sandbox **vm2** → SQLite/bcrypt → script sudo (**bash glob**) → root | Sandbox escape + glob leak |
 | [Usage](machines/Usage.md) | Linux | 🟢 Easy | SQLi (Laravel) → CVE-2023-24249 upload → `.monitrc` → **sudo 7z wildcard** → clé SSH root | SQLi + wildcard 7z (file read root) |
+| [GreenHorn](machines/GreenHorn.md) | Linux | 🟢 Easy | Gitea source leak → Pluck RCE (CVE-2024-9405) → su junior → **Depix** du PDF pixelisé → root | Git leak + depix de mdp |
 
 **Lab local**
 
@@ -94,13 +95,12 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | --- | --- | --- | --- |
 | [GOAD](machines/GOAD.md) | Windows (multi) | Lab AD multi-machines, mouvement latéral | Compromission d'un lab AD de A à Z (module 5) |
 
-> **Décompte candidature : ~21 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
+> **Décompte candidature : ~22 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
 
 ### 🎯 À faire (skeletons prêts — je cherche les commandes seul)
 
 | Machine | OS | Diff. | Vecteur attendu | Ce que ça va muscler |
 | --- | --- | --- | --- | --- |
-| [GreenHorn](machines/GreenHorn.md) | Linux | 🟢 Easy | Git leak (Gitea) → RCE CMS → **depix** | Fuite de source + depix |
 
 > **Règle de progression** : sur chaque machine, dérouler la **checklist privesc AVANT d'exploiter**, chronométrer, et pour chaque étape savoir dire *pourquoi ça marche* (mécanisme + remédiation, pour le rapport).
 
