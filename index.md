@@ -99,7 +99,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 
 > **Décompte candidature : ~22 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
 
-### 🎯 À faire (skeletons prêts — je cherche les commandes seul)
+### 🎯 À faire (skeletons prêts )
 
 | Machine | OS | Diff. | Vecteur attendu | Ce que ça va muscler |
 | --- | --- | --- | --- | --- |
