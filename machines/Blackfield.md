@@ -49,7 +49,7 @@ PORT     STATE SERVICE       VERSION
 3268/tcp open  ldap          AD LDAP (Global Catalog)
 5985/tcp open  http          WinRM
 Service Info: Host: DC01; OS: Windows Server 2019 Build 17763
-|_clock-skew: 6h59m59s      # Kerberos sensible à l'heure → aligner si un ticket échoue
+|_clock-skew: 6h59m59s     
 ```
 
 Partages SMB en anonyme (`guest`) :
