@@ -34,7 +34,9 @@ Aide-mémoires opérationnels pour le parcours pentest (Red & Blue Team). Une fi
 | 22 | [wazuh-sysmon](outils/wazuh-sysmon.md) | Blue Team | 9 | Lab SIEM maison : détecter tes propres attaques (Purple Team) |
 | 23 | [ldap-shell](outils/ldap-shell.md) | Active Directory | 5 | Pass-the-Cert & relais LDAP : réécrire l'annuaire (groupes, RBCD, ACL) |
 | 24 | [jenkins](outils/jenkins.md) | Web / CI | 3–4 | CVE-2024-23897 (lecture de fichiers), Script Console, déchiffrement des secrets |
-
+| 25 | [sqlmap](outils/sqlmap.md) | Web | 3 | Injection SQL automatisée : détection, dump, CSRF, --os-shell |
+| 26 | [pivoting](outils/pivoting.md) | Mouvement latéral | 9 | Tunnels SSH, SOCKS, proxychains, chisel, ligolo-ng |
+| 
 > Chemins relatifs depuis la racine du dépôt. Les fiches machines (`machines/`) pointent vers `../outils/<fiche>.md`.
 
 ---
@@ -125,7 +127,7 @@ nmap → searchsploit → metasploit / reverse-shells → lire-peas → privesc 
 
 **Chaîne web**
 ```
-nmap → gobuster → burp  (avec sqlmap/ffuf en complément à venir)
+nmap → gobuster → burp → sqlmap  (ffuf en complément)
 ```
 
 **Transverse (sur toutes les box)**
@@ -137,9 +139,8 @@ commandes-utiles (chercher/lire/réseau/droits) + file-transfer (déposer/exfilt
 
 ## À compléter (pistes)
 
-- **sqlmap.md** / **ffuf.md** — automatisation web (module 3) ← prioritaire pour Usage/GreenHorn
+- **ffuf.md** — fuzzing web avancé (module 3)
 - **john.md** — extraction de hashes (`*2john`) en complément de hashcat
-- **pivoting.md** — tunnels SSH, chisel, ligolo-ng, proxychains (module 9) ← avant Dante Pro Lab
 - **adcs.md** — fiche dédiée ESC1→ESC16 (pour l'instant couvert par `ad-memo` + Escape/Certified)
 - **wireshark.md** — analyse de trafic (module 1)
 - **mitre-attack.md** — mapping des techniques (module 7, pour le rapport)
