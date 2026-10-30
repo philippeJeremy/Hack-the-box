@@ -36,7 +36,9 @@ Aide-mémoires opérationnels pour le parcours pentest (Red & Blue Team). Une fi
 | 24 | [jenkins](outils/jenkins.md) | Web / CI | 3–4 | CVE-2024-23897 (lecture de fichiers), Script Console, déchiffrement des secrets |
 | 25 | [sqlmap](outils/sqlmap.md) | Web | 3 | Injection SQL automatisée : détection, dump, CSRF, --os-shell |
 | 26 | [pivoting](outils/pivoting.md) | Mouvement latéral | 9 | Tunnels SSH, SOCKS, proxychains, chisel, ligolo-ng |
-| 
+| 27 | [mysql-udf](outils/mysql-udf.md) | Élévation / Web | 4, 6 | `root` MySQL + `FILE` → UDF `sys_eval` → RCE aux droits du service |
+| 28 | [kiosk-breakout](outils/kiosk-breakout.md) | Accès / Breakout | — | Sortir d'un kiosque Windows / RDP bridé (dialogue `Ctrl+O` → cmd.exe) |
+
 > Chemins relatifs depuis la racine du dépôt. Les fiches machines (`machines/`) pointent vers `../outils/<fiche>.md`.
 
 ---
@@ -90,6 +92,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | [Codify](machines/Codify.md) | Linux | 🟢 Easy | Évasion sandbox **vm2** → SQLite/bcrypt → script sudo (**bash glob**) → root | Sandbox escape + glob leak |
 | [Usage](machines/Usage.md) | Linux | 🟢 Easy | SQLi (Laravel) → CVE-2023-24249 upload → `.monitrc` → **sudo 7z wildcard** → clé SSH root | SQLi + wildcard 7z (file read root) |
 | [GreenHorn](machines/GreenHorn.md) | Linux | 🟢 Easy | Gitea source leak → Pluck RCE (CVE-2024-9405) → su junior → **Depix** du PDF pixelisé → root | Git leak + depix de mdp |
+| [Touch](machines/Touch.md) | Windows | 🟡 Medium | API leak (serial=mdp) → login Nexion → RDP → **évasion kiosque** → MySQL `root` → **UDF `sys_eval`** → root.txt | Kiosk breakout + UDF MySQL |
 
 **Lab local**
 
@@ -97,7 +100,7 @@ Toutes les machines ci-dessous sont **retirées** (retired) : write-ups disponib
 | --- | --- | --- | --- |
 | [GOAD](machines/GOAD.md) | Windows (multi) | Lab AD multi-machines, mouvement latéral | Compromission d'un lab AD de A à Z (module 5) |
 
-> **Décompte candidature : ~22 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
+> **Décompte candidature : ~23 machines avec notes publiables** (+ Connected en cours). Objectif : **30**.
 
 ### 🎯 À faire (skeletons prêts )
 

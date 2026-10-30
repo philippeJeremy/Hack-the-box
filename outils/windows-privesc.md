@@ -111,6 +111,9 @@ wes.py systeminfo.txt
 :: copies shadow accessibles → dump hashes hors ligne (secretsdump)
 ```
 
+### Service MySQL/MariaDB en compte privilégié (UDF)
+Un accès **`root` MySQL** local (creds trouvés dans un `.bat`/config) + privilège **`FILE`** + `plugin_dir` inscriptible → charger une UDF (`lib_mysqludf_sys`) et exécuter `sys_eval('whoami')` **aux droits du service** (souvent SYSTEM). Détails et commandes : [mysql-udf](mysql-udf.md). *(vu sur Touch)*
+
 ---
 
 ## 4. Après SYSTEM : moisson
