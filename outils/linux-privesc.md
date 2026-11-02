@@ -82,6 +82,9 @@ sudo /usr/bin/le_binaire          # 7z échoue sur chaque ligne -> la recrache e
 ```
 > **Pourquoi** : `*` injecte des arguments (mes fichiers) ; un argument `@fichier` fait **lire** ce fichier par 7z ; l'erreur **affiche son contenu**. Équivalent `tar` : fichiers `--checkpoint=1`, `--checkpoint-action=exec=sh shell.sh`. **Correctif** : chemins explicites, `--` avant les chemins, ne pas archiver un dossier inscriptible en root.
 
+### Service inetd/telnetd lançant `login` avec un nom client non filtré (Orion)
+Un `telnetd` (inetutils) lancé en root par inetd invoque `/usr/bin/login` en y insérant le **nom d'utilisateur client comme argument brut** → injecter `-f root` donne `login -f root` = **root sans mot de passe** (CVE-2026-24061). Repérage : `ss -tlnp | grep :23`, `cat /etc/inetd.conf`, `strings <telnetd> | grep login`. Détails et exploitation : [telnetd-login-injection](telnetd-login-injection.md).
+
 ### SUID / SGID
 Binaires s'exécutant avec les droits du **propriétaire** (souvent root).
 ```bash
